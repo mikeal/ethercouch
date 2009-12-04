@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html><head>
+
+<link href="BespinEmbedded.css" type="text/css" rel="stylesheet">
+
+<script type="text/javascript" src="BespinEmbedded.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+
+<style>
+  body { padding: 20px; font-family: Calibri, Helvetica, Arial; }
+  h1 { border-bottom: 1px solid #ddd; font-size:120%; }
+  .bespin { margin: 0; padding: 0; border: 0; height: 300px; border: 10px solid #ddd; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Sample Editor as a Component</h1>
+<div id="editor" class="bespin" data-bespin-options='{ "stealFocus": true }'>// The text of this div shows up in the editor.
+var thisCode = "what shows up in the editor";
+function editMe() {
+ alert("and have fun!");
+}
+</div>
+
+<script>
+window.onBespinLoad = function() {
+    console.log("this is called when Bespin is loaded");
+    bespin = document.getElementById("editor").bespin;
+    // bespin.setContent('foo')
+    // text = bespin.getContent()
+    // editor.editorView.cursorDidMove = function() { arguments.callee.base.apply(this, arguments); /* my code here */ }
+};
+</script>
+
+
+</body>
+</html>
