@@ -120,6 +120,7 @@
             options      : options,
             interval     : options.interval,
             addListener  : function (func) {
+              console.log('addListener');
               this.listeners.push(func);
             },
             dispatch     : function (change) {
@@ -165,12 +166,11 @@
                 var c = this;
                 var dispatch = function (result) {
                   response = JSON.parse(result);
-                  console.log(response);
                   c.seq = response['last_seq'];
                   for (i in response['results']) {
                     var data = response['results'][i];
                     for (i in c.listeners) {
-                      listeners[i](data);
+                      c.listeners[i](data);
                     }
                   } 
                   setTimeout(function() {c.ajax = jQuery.ajax({url:c.getUri(),success:dispatch})}, c.interval * 1000);
