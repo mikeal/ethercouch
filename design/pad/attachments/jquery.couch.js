@@ -152,7 +152,7 @@
             },
             start        : function () {
               if (this.options == 'continuous') {
-                // Some code should probably be here
+                // add code
               } else {
                 // poll type
                 var c = this;

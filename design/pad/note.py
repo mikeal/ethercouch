@@ -22,21 +22,31 @@ template = """
     <script type="text/javascript">
     docid = "{{docid}}"
     db = $.couch.db('ethercouch');
-    db.openDoc(docid, {'success':function(doc){window.doc = doc;}});
     
     window.onBespinLoad = function() {
         console.log("this is called when Bespin is loaded");
         bespin = document.getElementById("editor").bespin;
+        
+        var push = function () {
+          if (bespin.getContent() != window.doc.currentText) {
+            doc.currentText = bespin.getContent();
+            db.saveDoc(doc, {success:function(doc){push();}})
+          } else {
+            setTimeout(push, 500);
+          }
+        }
+        db.openDoc(docid, {'success':function(doc){window.doc = doc; bespin.setContent(doc.currentText); push();}});
+        
         // bespin.setContent('foo')
         // text = bespin.getContent()
-        var original = bespin.editorView.cursorDidMove;
-        var onchange = function () {
-          original.apply(this, arguments);
-          var currentText = bespin.getContent();
-          doc.currentText = currentText;
-          db.saveDoc(doc);
-        }
-        bespin.editorView.cursorDidMove = onchange;
+        // var original = bespin.editorView.cursorDidMove;
+        // var onchange = function () {
+        //   original.apply(this, arguments);
+        //   var currentText = bespin.getContent();
+        //   doc.currentText = currentText;
+        //   db.saveDoc(doc);
+        // }
+        // bespin.editorView.cursorDidMove = onchange;
     };
     var updateBespin = function (data) {
       if (data['id'] == window.doc._id && data.changes[data.changes.length - 1]['rev'] != window.doc._rev) {
