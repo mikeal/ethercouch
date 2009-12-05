@@ -131,14 +131,6 @@
             getUri       : function () {
               var changesUri = this.uri;
               var q = []
-              if (!this.options.seq) {
-                var o = this.options
-                jQuery.ajax({
-                         url:    this.dburi,
-                         success: function(result) { o.seq = JSON.parse(result)['update_seq'];},
-                         async:   false,
-                         });
-              }
               if (this.options.feed) {
                 q.push('feed='+this.options.feed);
               } 
@@ -169,13 +161,19 @@
                   c.seq = response['last_seq'];
                   for (i in response['results']) {
                     var data = response['results'][i];
-                    for (i in c.listeners) {
-                      c.listeners[i](data);
-                    }
+                    jQuery.each(c.listeners, function(i, listener){listener(data)})
                   } 
                   setTimeout(function() {c.ajax = jQuery.ajax({url:c.getUri(),success:dispatch})}, c.interval * 1000);
                 }
-                c.ajax = jQuery.ajax({url:c.getUri(),success:dispatch});
+                if (!c.seq) {
+                  var setSeq = function(result) {
+                    c.seq = JSON.parse(result)['update_seq'];
+                    c.ajax = jQuery.ajax({url:c.getUri(),success:dispatch});
+                  }
+                  c.ajax = jQuery.ajax({url:c.dburi, success:setSeq})
+                } else {
+                  c.ajax = jQuery.ajax({url:c.getUri(),success:dispatch});
+                }
               }
             },
           };

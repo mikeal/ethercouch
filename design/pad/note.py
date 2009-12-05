@@ -1,3 +1,4 @@
+import pystache
 
 template = """
 <!DOCTYPE html>
@@ -7,14 +8,22 @@ template = """
   <script type="text/javascript" src="/ethercouch/_design/pad/BespinEmbedded.js"></script>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
   <script type="text/javascript" src="/ethercouch/_design/pad/jquery.couch.js"></script>
-
+  <style>
+    body { padding: 20px; font-family: Calibri, Helvetica, Arial; }
+    h1 { border-bottom: 1px solid #ddd; font-size:120%; }
+    .bespin { margin: 0; padding: 0; border: 0; height: 300px; border: 10px solid #ddd; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
+  </style>
   </head>
   <body>
 
-    <div id="editor" class="bespin" data-bespin-options='{ "stealFocus": true }'>
+    <div id="editor" class="bespin" data-bespin-options='{ "stealFocus": true }'>{{currentText}}
     </div>
   
     <script type="text/javascript">
+    docid = "{{docid}}"
+    db = $.couch.db('ethercouch');
+    db.openDoc(docid, {'success':function(doc){window.doc = doc;}});
+    
     window.onBespinLoad = function() {
         console.log("this is called when Bespin is loaded");
         bespin = document.getElementById("editor").bespin;
@@ -24,14 +33,21 @@ template = """
         var onchange = function () {
           original.apply(this, arguments);
           var currentText = bespin.getContent();
-
+          doc.currentText = currentText;
+          db.saveDoc(doc);
         }
         bespin.editorView.cursorDidMove = onchange;
     };
-    
-    var db = $.couch.db('ethercouch');
-    var changes = db.changes();
+    var updateBespin = function (data) {
+      if (data['id'] == window.doc._id && data.changes[data.changes.length - 1]['rev'] != window.doc._rev) {
+        console.log(data)
+        db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc}});
+      }
+    }
+    changes = db.changes();
+    changes.addListener(updateBespin);
     changes.start();
+    
     </script>
   
   </body>
@@ -40,4 +56,5 @@ template = """
 
 @show_function
 def show_note(doc, req):
-    return {'body':template,'headers':{'Content-Type':'text/html'}}
+    return {'body':pystache.render(template, {'docid':doc['_id'], 'currentText':doc.get('currentText','')}),
+            'headers':{'Content-Type':'text/html'}}
