@@ -14,7 +14,7 @@
 </head>
 <body>
 
-<h1>Sample Editor as a Component</h1>
+<h1>Sample</h1>
 <div id="editor" class="bespin" data-bespin-options='{ "stealFocus": true }'>// The text of this div shows up in the editor.
 var thisCode = "what shows up in the editor";
 function editMe() {
@@ -23,12 +23,40 @@ function editMe() {
 </div>
 
 <script>
+var docID = "adsf";
+var dbURI = "http://localhost:5984/ethercouch"
+seq = 0;
+
+var onChangesFeed = function (obj) {
+  
+}
+
+function connectToChanges(app, fun) {
+  function resetHXR(x) {
+    x.abort();
+    connectToChanges(app, fun);    
+  };
+  var c_xhr = jQuery.ajaxSettings.xhr();
+  c_xhr.open("GET", dbURI+"_changes?continuous=true&since="+seq, true);
+  c_xhr.send("");
+  c_xhr.onreadystatechange = fun;
+  setTimeout(function() {
+    resetHXR(c_xhr);      
+  }, 1000 * 60);
+};
+
 window.onBespinLoad = function() {
     console.log("this is called when Bespin is loaded");
     bespin = document.getElementById("editor").bespin;
     // bespin.setContent('foo')
     // text = bespin.getContent()
-    // editor.editorView.cursorDidMove = function() { arguments.callee.base.apply(this, arguments); /* my code here */ }
+    var original = bespin.editorView.cursorDidMove;
+    var onchange = function () {
+      original.apply(this, arguments);
+      var currentText = bespin.getContent();
+      
+    }
+    bespin.editorView.cursorDidMove = onchange;
 };
 </script>
 
