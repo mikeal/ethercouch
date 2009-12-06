@@ -120,7 +120,6 @@
             options      : options,
             interval     : options.interval,
             addListener  : function (func) {
-              console.log('addListener');
               this.listeners.push(func);
             },
             dispatch     : function (change) {
@@ -154,8 +153,14 @@
               var c = this;
               if (this.options.feed == 'continuous') {
                 var dispatch = function(xhr) {
-                  data = JSON.parse(xhr.target.responseText);
-                  jQuery.each(c.listeners, function(i, listener){listener(data)});
+                  var splitText = jQuery.grep(xhr.target.responseText.split('\n'), function(v){return (v != '')})
+                  var text = splitText[splitText.length - 1];
+                  if (text != c._lastLine) {
+                    c._lastLine = text
+                    var data = JSON.parse(text);
+                    c.seq = data.seq;
+                    jQuery.each(c.listeners, function(i, listener){listener(data)});
+                  }
                 }
                 var startContinuous = function() {
                   var c_xhr = jQuery.ajaxSettings.xhr();
@@ -394,7 +399,6 @@
             var keys = options["keys"];
             delete options["keys"];
             data = toJSON({ "keys": keys });
-            console.log(data);
           }
           ajax({
               type: type,

@@ -24,7 +24,6 @@ template = """
     db = $.couch.db('ethercouch');
     
     window.onBespinLoad = function() {
-        console.log("this is called when Bespin is loaded");
         bespin = document.getElementById("editor").bespin;
         
         var push = function () {
@@ -49,7 +48,6 @@ template = """
         // bespin.editorView.cursorDidMove = onchange;
     };
     var updateBespin = function (data) {
-      console.log('listener')
       if (data['id'] == window.doc._id && data.changes[data.changes.length - 1]['rev'] != window.doc._rev) {
         db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc}});
       }
