@@ -49,12 +49,12 @@ template = """
         // bespin.editorView.cursorDidMove = onchange;
     };
     var updateBespin = function (data) {
+      console.log('listener')
       if (data['id'] == window.doc._id && data.changes[data.changes.length - 1]['rev'] != window.doc._rev) {
-        console.log(data)
         db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc}});
       }
     }
-    changes = db.changes();
+    changes = db.changes({feed:'continuous'});
     changes.addListener(updateBespin);
     changes.start();
     

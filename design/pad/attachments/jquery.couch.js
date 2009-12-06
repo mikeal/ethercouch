@@ -151,11 +151,32 @@
               return null;
             },
             start        : function () {
-              if (this.options == 'continuous') {
-                // add code
+              var c = this;
+              if (this.options.feed == 'continuous') {
+                var dispatch = function(xhr) {
+                  data = JSON.parse(xhr.target.responseText);
+                  jQuery.each(c.listeners, function(i, listener){listener(data)});
+                }
+                var startContinuous = function() {
+                  var c_xhr = jQuery.ajaxSettings.xhr();
+                  c_xhr.open("GET", c.getUri(), true);
+                  c_xhr.send("");
+                  c_xhr.onreadystatechange = dispatch;
+                  var resetHXR = function () {c_xhr.abort(); startContinuous();};
+                  setTimeout(resetHXR, 1000 * 60);
+                }
+                if (!c.seq) {
+                  c.ajax = jQuery.ajax({url:c.dburi, success:function(result){
+                    c.seq = JSON.parse(result)['update_seq'];
+                    startContinuous();
+                    }
+                  });
+                } else {
+                  startContinuous();
+                }
+                
               } else {
                 // poll type
-                var c = this;
                 var dispatch = function (result) {
                   response = JSON.parse(result);
                   c.seq = response['last_seq'];
