@@ -44,7 +44,7 @@ template = """
         db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc;}});
       }
     }
-    changes = db.changes({query:{session:session},filter:'pad/note'});
+    changes = db.changes({query:{session:session,doc:docid},filter:'pad/note'});
     changes.addListener(updateBespin);
     changes.start();
     
@@ -63,7 +63,7 @@ def show_note(doc, req):
 
 @filter_function
 def filter_changes(doc, req):
-    if req['query'].get('session'):
-        if doc['last_write_session_id'] == req['query']['session']:
-            return False
-    return True
+    if req['query'].get('doc') == doc.get('_id'):
+        if doc.get('last_write_session_id') != req['query'].get('session'):
+            return True
+    return False

@@ -157,6 +157,9 @@
               var c = this;
               if (this.options.feed == 'continuous') {
                 var dispatch = function(xhr) {
+                  if (this.readyState == 4) {
+                    startContinuous();
+                  }
                   var splitText = jQuery.grep(xhr.target.responseText.split('\n'), function(v){return (v != '')})
                   var text = splitText[splitText.length - 1];
                   if (text != c._lastLine) {
@@ -165,14 +168,16 @@
                     c.seq = data.seq;
                     jQuery.each(c.listeners, function(i, listener){listener(data)});
                   }
+                  
+                  
                 }
                 var startContinuous = function() {
                   var c_xhr = jQuery.ajaxSettings.xhr();
-                  c_xhr.open("GET", c.getUri(), true);
+                  c_xhr.open("GET", c.getUri()+'&timeout=60000', true);
                   c_xhr.send("");
                   c_xhr.onreadystatechange = dispatch;
-                  var resetHXR = function () {c_xhr.abort(); startContinuous();};
-                  setTimeout(resetHXR, 1000 * 60);
+                  // var resetHXR = function () {c_xhr.abort(); startContinuous();};
+                  // setTimeout(resetHXR, 1000 * 60);
                 }
                 if (!c.seq) {
                   c.ajax = jQuery.ajax({url:c.dburi, success:function(result){
