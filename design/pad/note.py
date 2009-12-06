@@ -41,10 +41,11 @@ template = """
     };
     var updateBespin = function (data) {
       if (data['id'] == window.doc._id && data.changes[data.changes.length - 1]['rev'] != window.doc._rev) {
-        db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc;}});
+        bespin.setContent(data.doc.currentText);
+        window.doc = data.doc;
       }
     }
-    changes = db.changes({query:{session:session,doc:docid},filter:'pad/note'});
+    changes = db.changes({include_docs:true,query:{session:session,doc:docid},filter:'pad/note'});
     changes.addListener(updateBespin);
     changes.start();
     

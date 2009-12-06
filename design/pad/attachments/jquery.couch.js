@@ -146,6 +146,9 @@
               if (this.options.filter) {
                 q.push('filter='+this.options.filter);
               }
+              if (this.options.include_docs) {
+                q.push('include_docs=true');
+              }
               if (q.length != 0) {
                 changesUri += '?';
                 changesUri += q.join('&');
@@ -168,8 +171,6 @@
                     c.seq = data.seq;
                     jQuery.each(c.listeners, function(i, listener){listener(data)});
                   }
-                  
-                  
                 }
                 var startContinuous = function() {
                   var c_xhr = jQuery.ajaxSettings.xhr();
