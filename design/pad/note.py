@@ -1,4 +1,5 @@
 import pystache
+import uuid
 
 template = """
 <!DOCTYPE html>
@@ -20,7 +21,8 @@ template = """
     </div>
   
     <script type="text/javascript">
-    docid = "{{docid}}"
+    docid = "{{docid}}";
+    session = "{{session}}";
     db = $.couch.db('ethercouch');
     
     window.onBespinLoad = function() {
@@ -29,30 +31,20 @@ template = """
         var push = function () {
           if (bespin.getContent() != window.doc.currentText) {
             doc.currentText = bespin.getContent();
-            db.saveDoc(doc, {success:function(doc){push();}})
+            doc.last_write_session_id = session;
+            db.saveDoc(doc, {success:function(d){push();}})
           } else {
             setTimeout(push, 500);
           }
         }
         db.openDoc(docid, {'success':function(doc){window.doc = doc; bespin.setContent(doc.currentText); push();}});
-        
-        // bespin.setContent('foo')
-        // text = bespin.getContent()
-        // var original = bespin.editorView.cursorDidMove;
-        // var onchange = function () {
-        //   original.apply(this, arguments);
-        //   var currentText = bespin.getContent();
-        //   doc.currentText = currentText;
-        //   db.saveDoc(doc);
-        // }
-        // bespin.editorView.cursorDidMove = onchange;
     };
     var updateBespin = function (data) {
       if (data['id'] == window.doc._id && data.changes[data.changes.length - 1]['rev'] != window.doc._rev) {
-        db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc}});
+        db.openDoc(docid, {success:function(doc){bespin.setContent(doc.currentText); window.doc = doc;}});
       }
     }
-    changes = db.changes({feed:'continuous'});
+    changes = db.changes({query:{session:session},filter:'pad/note'});
     changes.addListener(updateBespin);
     changes.start();
     
@@ -64,5 +56,14 @@ template = """
 
 @show_function
 def show_note(doc, req):
-    return {'body':pystache.render(template, {'docid':doc['_id'], 'currentText':doc.get('currentText','')}),
+    return {'body':pystache.render(template, {'docid':doc['_id'], 
+                                              'session':str(uuid.uuid1()).replace('-',''),
+                                              'currentText':doc.get('currentText','')}),
             'headers':{'Content-Type':'text/html'}}
+
+@filter_function
+def filter_changes(doc, req):
+    if req['query'].get('session'):
+        if doc['last_write_session_id'] == req['query']['session']:
+            return False
+    return True

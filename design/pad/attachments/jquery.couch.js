@@ -114,7 +114,7 @@
               options.feed = "continuous";
             } else if (jQuery.browser.safari) {
               options.feed = "continuous";
-            } else {
+            } else if (jQuery.browser.msie) {
               options.feed = "longpoll";
             }
           }
@@ -140,10 +140,17 @@
               if (this.seq) {
                 q.push('since='+this.seq);
               }
+              if (this.options.query) {
+                jQuery.each(this.options.query, function(k, v){q.push(k+'='+v)});
+              }
+              if (this.options.filter) {
+                q.push('filter='+this.options.filter);
+              }
               if (q.length != 0) {
                 changesUri += '?';
                 changesUri += q.join('&');
               }
+              
               return changesUri;
             },
             start        : function () {
