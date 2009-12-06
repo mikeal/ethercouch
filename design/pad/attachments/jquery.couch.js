@@ -109,6 +109,15 @@
           if (!options.interval) {
             options.interval = 5;
           }
+          if (!options.feed) {
+            if (jQuery.browser.mozilla) {
+              options.feed = "continuous";
+            } else if (jQuery.browser.safari) {
+              options.feed = "continuous";
+            } else {
+              options.feed = "longpoll";
+            }
+          }
           var dburi = this.uri;
           var db = this;
           var retVal = {
@@ -121,11 +130,6 @@
             interval     : options.interval,
             addListener  : function (func) {
               this.listeners.push(func);
-            },
-            dispatch     : function (change) {
-              for (i in this.listeners) {
-                this.listeners[i](change);
-              }
             },
             getUri       : function () {
               var changesUri = this.uri;
@@ -141,13 +145,6 @@
                 changesUri += q.join('&');
               }
               return changesUri;
-            },
-            pollListener : function (result) {
-              
-            },
-            continuousListener : function (data) {
-              // Some code should probably be here
-              return null;
             },
             start        : function () {
               var c = this;
